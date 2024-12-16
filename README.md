@@ -97,7 +97,8 @@ Detecta e rotula objetos presentes em imagens.
 Instale a biblioteca usando o [Composer](https://getcomposer.org/):
 
 ```bash
-composer require bugadoz/woolball-lib
+composer require seu-usuario/woolball-library
+
 ```
 
 Certifique-se de que o autoload do Composer está configurado no seu projeto:
