@@ -3,7 +3,7 @@
   "description": "Uma biblioteca poderosa para integração de AI, incluindo funções de texto, imagem e áudio.",
   "type": "library",
   "require": {
-    "php": ">=8.2",
+    "php": ">=8.1",
     "guzzlehttp/guzzle": "^7.0"
   },
   "autoload": {
