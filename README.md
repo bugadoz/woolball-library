@@ -11,7 +11,7 @@ A biblioteca `WoolballAPI` permite a integração com a API Woolball para realiz
 Execute o seguinte comando no terminal para instalar a biblioteca usando o Composer:
 
 ```bash
-composer require bugadoz/woolball-library
+composer require bugadoz/WoolballLibrary
 ```
 
 Depois de instalar, inclua o autoloader no seu projeto:
