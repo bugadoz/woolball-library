@@ -1,109 +1,119 @@
 <?php
-
-class WoolballAPI
-{
-    private $apiBaseUrl;
+class WoolballAPI {
+    private $apiBaseUrl = "https://api.woolball.xyz";
     private $apiKey;
 
-    public function __construct($apiKey)
-    {
-        $this->apiBaseUrl = "https://api.woolball.xyz";
+    public function __construct($apiKey) {
         $this->apiKey = $apiKey;
     }
 
-    private function makeRequest($endpoint, $method, $data = null, $headers = [])
-    {
-        $curl = curl_init();
+    private function sendRequest($endpoint, $method = 'GET', $headers = [], $body = null) {
         $url = $this->apiBaseUrl . $endpoint;
+        $ch = curl_init($url);
 
-        $defaultHeaders = [
-            'Authorization: Bearer ' . $this->apiKey,
-            'Content-Type: application/json'
-        ];
-
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
-        if ($data) {
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        $defaultHeaders = ["Authorization: Bearer " . $this->apiKey];
+        $headers = array_merge($defaultHeaders, $headers);
+        
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        if ($method === 'POST') {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
         }
 
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array_merge($defaultHeaders, $headers));
+        $response = curl_exec($ch);
 
-        $response = curl_exec($curl);
-        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
+        if (curl_errno($ch)) {
+            throw new Exception('CURL Error: ' . curl_error($ch));
+        }
 
-        return ["status" => $httpCode, "response" => json_decode($response, true)];
+        curl_close($ch);
+        return json_decode($response, true);
     }
 
-    public function textToSpeech($text, $targetLanguage)
-    {
-        $payload = ["Text" => $text, "Lang" => $targetLanguage];
-        return $this->makeRequest("/v1/text-to-speech", "POST", $payload);
+    public function textToSpeech($text, $language) {
+        $endpoint = "/v1/text-to-speech/" . $language . "?text=" . urlencode($text);
+        $response = $this->sendRequest($endpoint);
+        return base64_decode($response['data']);
     }
 
-    public function speechToText($audioFilePath, $srcLang)
-    {
-        $postFields = ["audio" => new CURLFile($audioFilePath), "SrcLang" => $srcLang];
-        return $this->makeRequest("/v1/speech-to-text", "POST", null, $postFields);
+    public function speechToText($audioFilePath) {
+        $endpoint = "/v1/speech-to-text";
+        $body = ['audio' => new CURLFile($audioFilePath, 'audio/wav', basename($audioFilePath))];
+        $response = $this->sendRequest($endpoint, 'POST', [], $body);
+        return $response['data'];
     }
 
-    public function translateText($text, $srcLang, $tgtLang)
-    {
-        $payload = ["Text" => $text, "SrcLang" => $srcLang, "TgtLang" => $tgtLang];
-        return $this->makeRequest("/v1/translate", "POST", $payload);
+    public function generateText($text) {
+        $endpoint = "/v1/completions?text=" . urlencode($text);
+        $response = $this->sendRequest($endpoint);
+        return $response['data'];
     }
 
-    public function zeroShotClassification($text, $candidateLabels)
-    {
-        $payload = ["Text" => $text, "CandidateLabels" => $candidateLabels];
-        return $this->makeRequest("/v1/zero-shot-classification", "POST", $payload);
+    public function translateText($text, $srcLang, $tgtLang) {
+        $endpoint = "/v1/translation";
+        $payload = json_encode(["Text" => $text, "SrcLang" => $srcLang, "TgtLang" => $tgtLang]);
+        $headers = ["Content-Type: application/json"];
+        $response = $this->sendRequest($endpoint, 'POST', $headers, $payload);
+        return $response['data'];
     }
 
-    public function detectFacialEmotions($imagePath)
-    {
-        $postFields = ["image" => new CURLFile($imagePath)];
-        return $this->makeRequest("/v1/detect-facial-emotions", "POST", null, $postFields);
+    public function zeroShotClassification($text, $labels) {
+        $endpoint = "/v1/zero-shot-classification";
+        $payload = json_encode(["Text" => $text, "CandidateLabels" => $labels]);
+        $headers = ["Content-Type: application/json"];
+        $response = $this->sendRequest($endpoint, 'POST', $headers, $payload);
+        return $response['data'];
     }
 
-    public function analyzeImageContent($imagePath, $prompt)
-    {
-        $postFields = ["image" => new CURLFile($imagePath), "prompt" => $prompt];
-        return $this->makeRequest("/v1/image-to-text", "POST", null, $postFields);
+    public function detectFacialEmotions($imagePath) {
+        $endpoint = "/v1/image-facial-emotions";
+        $body = ['image' => new CURLFile($imagePath, 'image/png', basename($imagePath))];
+        $response = $this->sendRequest($endpoint, 'POST', [], $body);
+        return $response['data'];
     }
 
-    public function imageClassification($imagePaths)
-    {
-        $postFields = ["images[]" => array_map(fn($path) => new CURLFile($path), $imagePaths)];
-        return $this->makeRequest("/v1/image-classification", "POST", null, $postFields);
+    public function analyzeImageContent($imagePath, $prompt) {
+        $endpoint = "/v1/vision";
+        $body = ['image' => new CURLFile($imagePath, 'image/png', basename($imagePath)), 'prompt' => $prompt];
+        $response = $this->sendRequest($endpoint, 'POST', [], $body);
+        return $response['data'];
     }
 
-    public function imageZeroShotClassification($imagePath, $labels)
-    {
-        $postFields = ["image" => new CURLFile($imagePath), "labels" => json_encode($labels)];
-        return $this->makeRequest("/v1/image-zero-shot-classification", "POST", null, $postFields);
+    public function classifyImages($imagePaths) {
+        $endpoint = "/v1/image-classification";
+        $body = [];
+        foreach ($imagePaths as $imagePath) {
+            $body['images[]'] = new CURLFile($imagePath, 'image/png', basename($imagePath));
+        }
+        $response = $this->sendRequest($endpoint, 'POST', [], $body);
+        return $response['data'];
     }
 
-    public function summarizeText($text)
-    {
-        $payload = ["text" => $text];
-        return $this->makeRequest("/v1/summarize", "POST", $payload);
+    public function zeroShotImageClassification($imagePath, $labels) {
+        $endpoint = "/v1/image-zero-shot";
+        $body = [
+            'image' => new CURLFile($imagePath, 'image/png', basename($imagePath)),
+            'labels' => json_encode($labels)
+        ];
+        $response = $this->sendRequest($endpoint, 'POST', [], $body);
+        return $response['data'];
     }
 
-    public function generateCharacterImage($character)
-    {
-        return $this->makeRequest("/v1/char-to-image?character=" . urlencode($character), "GET");
+    public function summarizeText($text) {
+        $endpoint = "/v1/summarization";
+        $payload = json_encode(["text" => $text]);
+        $headers = ["Content-Type: application/json"];
+        $response = $this->sendRequest($endpoint, 'POST', $headers, $payload);
+        return $response['data'];
+    }
+
+    public function generateCharacterImage($character) {
+        $endpoint = "/v1/char-to-image?character=" . urlencode($character);
+        $response = $this->sendRequest($endpoint);
+        return $response['data'];
     }
 }
-
-// Exemplo de uso:
-$apiKey = "sua_chave_api_aqui";
-$woolball = new WoolballAPI($apiKey);
-
-// Converter texto para fala
-$response = $woolball->textToSpeech("Olá mundo", "pt");
-print_r($response);
 
 ?>
