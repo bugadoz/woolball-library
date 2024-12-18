@@ -1,4 +1,5 @@
 <?php
+namespace WoolballLibrary;
 class WoolballAPI {
     private $apiBaseUrl = "https://api.woolball.xyz";
     private $apiKey;
