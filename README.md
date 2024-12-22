@@ -103,7 +103,9 @@ echo $generatedText;
 
 Traduz um texto entre dois idiomas especificados.
 
+Idiomas: [languages-in-flores-200](https://github.com/facebookresearch/flores/blob/main/flores200/README.md#languages-in-flores-200)
 ```php
+
 $translatedText = $woolball->translateText('Olá, mundo!', 'por_Latn', 'eng_Latn');
 echo $translatedText;
 ```
