@@ -38,7 +38,7 @@ https://woolball.xyz/
 
 ```php
 $apiKey = 'SUA_API_KEY';
-$woolball = new WoolballAPI($apiKey);
+$woolball = new WoolballLibrary\WoolballAPI($apiKey);
 ```
 
 ---
