@@ -1,29 +1,53 @@
 <?php
-require_once './vendor/autoload.php';// Exemplo de uso
-$apiKey = "SUA CHAVE DA API";
-$api = new WoolballLibrary\WoolballAPI($apiKey);
 
-try {
-    $audioData = $api->textToSpeech("Olá mundo", "en");
-    file_put_contents("output.mp3", $audioData);
+namespace WoolballLibrary\Tests;
 
- $text = $api->speechToText("audio.wav");
-   echo "Texto Transcrito: $text\n";
+use WoolballLibrary\WoolballAPI;
 
-    $generatedText = $api->generateText("Olá mundo");
-    echo "Texto Gerado: $generatedText\n";
+class WoolballLibraryTest extends \PHPUnit\Framework\TestCase 
+{
 
-    $translatedText = $api->translateText("Olá, mundo!", "por_Latn", "eng_Latn");
-    echo "Texto Traduzido: $translatedText\n";
+    public WoolballAPI $api;
 
-    $classification = $api->zeroShotClassification("Which city is not in South America?", ["hungry", "travel", "question", "doubt"]);
-    print_r($classification);
+    public function setUp(): void
+    {
+        parent::setUp();
 
-    $emotions = $api->detectFacialEmotions("img.png");
-    print_r($emotions);
+        $apiKey = "SUA CHAVE DA API";
+        $this->api = new WoolballAPI($apiKey);
+    }
 
-    $summary = $api->summarizeText("Artificial intelligence is intelligence demonstrated by machines.");
-    echo "Resumo: $summary\n";
-} catch (Exception $e) {
-    echo "Erro: " . $e->getMessage() . "\n";
+    public function testTranslateText()
+    {
+
+        $translatedText = $this->api->translateText("Olá, mundo!", "por_Latn", "eng_Latn");
+        $this->assertEquals("Hey, world!", $translatedText);
+    }
+
+    public function testZeroShotClassification()
+    {
+
+        $classification = $this->api->zeroShotClassification("Which city is not in South America?", ["hungry", "travel", "question", "doubt"]);
+
+        $classificationExpected = [ 
+            'Labels' => [ 
+                0 => 'hungry', 
+                1 => 'travel',
+                2 => 'question',
+                3 => 'doubt'
+            ], 
+            'Scores' => [
+                0 => 0.2592324849002,
+                1 => 0.24692250503327,
+                2 => 0.24692250503327,
+                3 => 0.24692250503327
+            ]
+        ];
+        
+        $this->assertIsArray($classification);
+        $this->assertArrayHasKey('Labels', $classification);
+        $this->assertArrayHasKey('Scores', $classification);
+
+        $this->assertEquals($classificationExpected, $classification);
+    }
 }
