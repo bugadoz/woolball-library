@@ -1,5 +1,6 @@
 .DS_Store
 .git
 .env*
+.phpunit.result.cache
 /vendor
 /nbproject/*
