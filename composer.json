@@ -28,5 +28,8 @@
       "type": "vcs",
       "url": "https://github.com/bugadoz/woolball-library"
     }
-  ]
+  ],
+  "scripts": {
+    "test": "vendor/bin/phpunit -c phpunit.xml.dist --stderr"
+  }
 }
