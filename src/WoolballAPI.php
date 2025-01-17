@@ -46,8 +46,8 @@ class WoolballAPI {
         return $response['data'];
     }
 
-    public function generateText($text) {
-        $endpoint = "/v1/completions?text=" . urlencode($text);
+    public function generateText($text,$model=null) {
+        $endpoint = "/v1/completions?text=" . urlencode($text)."&model=$model;
         $response = $this->sendRequest($endpoint);
         return $response['data'];
     }
