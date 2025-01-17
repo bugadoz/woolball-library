@@ -87,7 +87,7 @@ echo $transcription;
 Gera um texto baseado em um prompt fornecido.
 
 ```php
-$generatedText = $woolball->generateText('Qual é a capital da França?');
+$generatedText = $woolball->generateText('Qual é a capital da França?','HuggingFaceTB/SmolLM2-360M-Instruct');
 echo $generatedText;
 ```
 
