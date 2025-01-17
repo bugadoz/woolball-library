@@ -46,11 +46,18 @@ class WoolballAPI {
         return $response['data'];
     }
 
-    public function generateText($text,$model=null) {
-        $endpoint = "/v1/completions?text=" . urlencode($text)."&model=$model;
-        $response = $this->sendRequest($endpoint);
-        return $response['data'];
+   public function generateText($text, $model = null) {
+    $endpoint = "/v1/completions?text=" . urlencode($text);
+
+    // Adiciona o modelo, se fornecido
+    if ($model !== null) {
+        $endpoint .= "&model=" . urlencode($model);
     }
+
+    $response = $this->sendRequest($endpoint);
+    return $response['data'];
+}
+
 
     public function translateText($text, $srcLang, $tgtLang) {
         $endpoint = "/v1/translation";
