@@ -93,6 +93,7 @@ echo $generatedText;
 
 #### Parâmetros:
 - `prompt` (string): Texto ou pergunta base para a geração.
+- Aceita o parametro model na requisição. Confira os Models disponíveis https://api.woolball.xyz/v1/models/completions
 
 #### Retorno:
 - Texto gerado.
